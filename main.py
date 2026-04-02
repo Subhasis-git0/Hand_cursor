@@ -7,6 +7,7 @@ import time
 pinch_start_time = 0
 dragging = False
 pinch_active = False
+prev_scroll_y = 0
 
 last_click_time = 0
 
@@ -39,7 +40,7 @@ while True:
     result = landmarker.detect(mp_image)
 
     if result.hand_landmarks:
-        print("Hand detected")
+        #print("Hand detected")
         for hand_landmarks in result.hand_landmarks:
             
             thumb = hand_landmarks[4]
@@ -58,17 +59,23 @@ while True:
 
             distance = math.hypot(index_x - thumb_x, index_y - thumb_y)
             distance_middle = math.hypot(middle_x - thumb_x, middle_y - thumb_y)
-
-            current_time = time.time()
-            if distance < 30 and distance_middle > 50:
-                pyautogui.click()
-                time.sleep(0.2)
+            distance_index_middle = math.hypot(index_x - middle_x, index_y - middle_y)
             
-            elif distance < 50 and distance_middle < 50:
+            # gesture logic
+            # CLICK → thumb + index
+            if distance < 40 and distance_middle > 50:
+                pyautogui.click()
+                time.sleep(0.2)  # prevent spam
+
+
+            # DRAG → thumb + index + middle
+            elif distance < 40 and distance_middle < 40:
                 if not dragging:
                     pyautogui.mouseDown()
                     dragging = True
 
+
+            # RELEASE drag
             else:
                 if dragging:
                     pyautogui.mouseUp()
@@ -82,10 +89,21 @@ while True:
             screen_x = max(0, min(screen_w - 1, screen_x))
             screen_y = max(0, min(screen_h - 1, screen_y))
             
-            smoothening = 5
+            smoothening = 6
 
             curr_x = prev_x + (screen_x - prev_x) / smoothening
             curr_y = prev_y + (screen_y - prev_y) / smoothening
+
+            #scroll when index and middle fingers are close together
+            if distance_index_middle < 30 and not dragging:
+                print("Scrolling")
+                dy = index_y - prev_scroll_y
+                if abs(dy) > 5:
+                    pyautogui.scroll(int(dy*2)) #speed adjustment, use -int to reverse scroll direction
+                prev_scroll_y = index_y
+
+            else:
+                prev_scroll_y = index_y
 
             try:
                 pyautogui.moveTo(curr_x, curr_y)
