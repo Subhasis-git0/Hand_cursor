@@ -46,6 +46,12 @@ while True:
             thumb = hand_landmarks[4]
             index_finger = hand_landmarks[8]
             middle_finger = hand_landmarks[12]
+            index_up = hand_landmarks[6]
+            middle_up = hand_landmarks[10]
+            ring_up = hand_landmarks[14]
+            pinky_up = hand_landmarks[18]
+            ring_finger = hand_landmarks[16]
+            pinky_finger = hand_landmarks[20]
 
             h, w, _ = frame.shape
             cx = int(index_finger.x * w)
@@ -61,6 +67,19 @@ while True:
             distance_middle = math.hypot(middle_x - thumb_x, middle_y - thumb_y)
             distance_index_middle = math.hypot(index_x - middle_x, index_y - middle_y)
             
+            # Minimize window when fist is detected
+            fist = (index_finger.y > index_up.y and
+                    middle_finger.y > middle_up.y and
+                    ring_finger.y > ring_up.y and
+                    pinky_finger.y > pinky_up.y)
+            if fist:
+                pyautogui.hotkey('win', 'd')  # Minimize window
+                break
+            
+            current_time = time.time()
+            
+            
+
             # gesture logic
             # CLICK → thumb + index
             if distance < 40 and distance_middle > 50:
@@ -96,7 +115,7 @@ while True:
 
             #scroll when index and middle fingers are close together
             if distance_index_middle < 30 and not dragging:
-                print("Scrolling")
+                #print("Scrolling")
                 dy = index_y - prev_scroll_y
                 if abs(dy) > 5:
                     pyautogui.scroll(int(dy*2)) #speed adjustment, use -int to reverse scroll direction
