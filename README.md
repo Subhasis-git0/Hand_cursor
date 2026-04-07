@@ -24,4 +24,6 @@ Volume Control
 -Index finger + Thumb
 -Activation Time is 3sec
 -Distance between the finger controls the volume
+-Depends
+
 
